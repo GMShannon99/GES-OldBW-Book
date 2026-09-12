@@ -105,6 +105,35 @@ html, body {
   cursor: pointer;
 }
 
+.hotspot {
+  position: absolute;
+  cursor: zoom-in;
+}
+
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.zoom-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zoom-frame {
+  background-repeat: no-repeat;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
 .end-note {
   position: absolute;
   top: 0;

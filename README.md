@@ -14,8 +14,10 @@ cropping or distortion.
 - `pages.js` &mdash; the book's configuration: title, page order, and
   source image dimensions.
 - `script.js` &mdash; initializes StPageFlip from `pages.js` and
-  overlays page numbers (and the end-of-book note) at render time; the
-  source JPGs are never modified.
+  overlays page numbers, photo hotspots, and the end-of-book note at
+  render time; the source JPGs are never modified.
+- `hotspots.js` &mdash; per-page bounding boxes (as fractions of the
+  page image) for the clickable photo hotspots on the collage pages.
 - `images/` &mdash; the source JPGs, copied in unmodified, under their
   original filenames.
 - `vendor/page-flip.browser.js` &mdash; the StPageFlip library, vendored
@@ -43,6 +45,26 @@ it fades the viewer to a blank screen and attempts to close the tab
 the reliable part of the exit on tabs not opened by script). Flipping
 backward from the back cover returns to `p31` normally, and there's no
 way to flip backward past the front cover.
+
+## Photo hotspots
+
+Pages 3&ndash;14 and 16&ndash;24 are scrapbook-style collages of several
+individually mounted photos, so each photo on those pages is a
+clickable hotspot (cursor changes to a zoom-in icon on hover).
+Clicking a photo opens it full-page &mdash; cropped from the existing
+page scan via CSS `background-size`/`background-position` (no separate
+per-photo image files exist), scaled to fill the viewport without
+distortion, same as any other page. Clicking the zoomed photo again
+closes it and returns to the exact page it came from. While zoomed,
+arrow-key navigation and the prev/next buttons are disabled so the
+book underneath can't be flipped accidentally. Hotspots stop their
+click/touch events from reaching StPageFlip, so they don't interfere
+with dragging a page corner elsewhere on the same page.
+
+Page 2 (`text pg 2.jpg`) is excluded even though it falls inside the
+requested range: it's mostly memoir text plus a single photo, not a
+multi-photo collage. Page 15 and pages 25&ndash;31 were left out of
+scope entirely (not evaluated).
 
 ## Local preview
 

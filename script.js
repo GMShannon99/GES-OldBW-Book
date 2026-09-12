@@ -3,6 +3,8 @@
 
   var config = window.BOOK;
 
+  var HOTSPOTS = window.HOTSPOTS || {};
+
   var stageEl = document.getElementById("stage");
   var loadingEl = document.getElementById("loading");
   var appEl = document.getElementById("app");
@@ -10,6 +12,8 @@
   var nextBtn = document.getElementById("next-btn");
   var indicatorEl = document.getElementById("page-indicator");
   var titleEl = document.getElementById("title");
+  var zoomOverlayEl = document.getElementById("zoom-overlay");
+  var zoomFrameEl = document.getElementById("zoom-frame");
 
   document.title = config.title;
   titleEl.textContent = config.title;
@@ -33,7 +37,8 @@
       kind: "content",
       src: config.dir + "/" + p.file,
       alt: config.title + " page " + (p.number || ""),
-      number: p.number
+      number: p.number,
+      file: p.file
     });
   });
   pageDefs.push({
@@ -49,6 +54,51 @@
   var lastLayout = null;
   var resizeTimer = null;
   var exited = false;
+  var zoomOpen = false;
+  var zoomBox = null;
+
+  // Fit a box (fraction of the full page image) into the viewport, preserving
+  // its true aspect ratio, then use it to crop that exact region out of the
+  // full page image via background-size/background-position (no separate
+  // cropped image files exist, so this is a CSS-only crop of the page scan).
+  function positionZoomFrame(box) {
+    var boxRatio = (box.w * PAGE_WIDTH) / (box.h * PAGE_HEIGHT);
+    var availW = window.innerWidth;
+    var availH = window.innerHeight;
+    var totalW, totalH;
+    if (availW / availH > boxRatio) {
+      totalH = availH;
+      totalW = totalH * boxRatio;
+    } else {
+      totalW = availW;
+      totalH = totalW / boxRatio;
+    }
+    zoomFrameEl.style.width = Math.round(totalW) + "px";
+    zoomFrameEl.style.height = Math.round(totalH) + "px";
+    zoomFrameEl.style.backgroundSize = 100 / box.w + "% " + 100 / box.h + "%";
+    zoomFrameEl.style.backgroundPosition =
+      (box.w >= 1 ? 0 : (100 * box.x) / (1 - box.w)) + "% " +
+      (box.h >= 1 ? 0 : (100 * box.y) / (1 - box.h)) + "%";
+  }
+
+  function openZoom(src, box) {
+    zoomBox = box;
+    zoomFrameEl.style.backgroundImage = "url(" + src + ")";
+    positionZoomFrame(box);
+    zoomOverlayEl.classList.add("visible");
+    zoomOverlayEl.setAttribute("aria-hidden", "false");
+    zoomOpen = true;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+  }
+
+  function closeZoom() {
+    zoomOpen = false;
+    zoomBox = null;
+    zoomOverlayEl.classList.remove("visible");
+    zoomOverlayEl.setAttribute("aria-hidden", "true");
+    updateIndicator();
+  }
 
   // Compute the largest single-page box that fits inside #stage's available
   // space without exceeding it in either dimension, while preserving the
@@ -107,6 +157,26 @@
         num.textContent = String(def.number);
         surface.appendChild(num);
       }
+      (HOTSPOTS[def.file] || []).forEach(function (box) {
+        var hotspot = document.createElement("div");
+        hotspot.className = "hotspot";
+        hotspot.style.left = box.x * 100 + "%";
+        hotspot.style.top = box.y * 100 + "%";
+        hotspot.style.width = box.w * 100 + "%";
+        hotspot.style.height = box.h * 100 + "%";
+        hotspot.setAttribute("role", "button");
+        hotspot.setAttribute("aria-label", "View photo full-page");
+        var blockFlipGesture = function (e) {
+          e.stopPropagation();
+        };
+        hotspot.addEventListener("mousedown", blockFlipGesture);
+        hotspot.addEventListener("touchstart", blockFlipGesture, { passive: true });
+        hotspot.addEventListener("click", function (e) {
+          e.stopPropagation();
+          openZoom(def.src, box);
+        });
+        surface.appendChild(hotspot);
+      });
       div.appendChild(surface);
     } else if (def.kind === "endcover") {
       div.className = "page";
@@ -146,7 +216,7 @@
   }
 
   function updateIndicator() {
-    if (!pageFlip || exited) return;
+    if (!pageFlip || exited || zoomOpen) return;
     var current = pageFlip.getCurrentPageIndex() + 1;
     indicatorEl.textContent = current + " / " + TOTAL_PAGES;
     prevBtn.disabled = pageFlip.getCurrentPageIndex() <= 0;
@@ -154,7 +224,7 @@
   }
 
   function goNext() {
-    if (!pageFlip || exited) return;
+    if (!pageFlip || exited || zoomOpen) return;
     if (pageFlip.getCurrentPageIndex() >= LAST_INDEX) {
       exitBook();
       return;
@@ -163,7 +233,7 @@
   }
 
   function goPrev() {
-    if (!pageFlip || exited) return;
+    if (!pageFlip || exited || zoomOpen) return;
     if (pageFlip.getCurrentPageIndex() <= 0) return;
     pageFlip.flipPrev();
   }
@@ -245,7 +315,7 @@
   }
 
   function handleKeydown(e) {
-    if (!pageFlip || exited) return;
+    if (!pageFlip || exited || zoomOpen) return;
     if (e.key === "ArrowRight" || e.key === "PageDown") {
       goNext();
     } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
@@ -262,8 +332,12 @@
 
   window.addEventListener("resize", handleResize);
   window.addEventListener("orientationchange", handleResize);
+  window.addEventListener("resize", function () {
+    if (zoomOpen && zoomBox) positionZoomFrame(zoomBox);
+  });
 
   prevBtn.addEventListener("click", goPrev);
   nextBtn.addEventListener("click", goNext);
   document.addEventListener("keydown", handleKeydown);
+  zoomOverlayEl.addEventListener("click", closeZoom);
 })();
