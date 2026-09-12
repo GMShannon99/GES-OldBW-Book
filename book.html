@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>G.E. Shannon — Old B&amp;W Photos</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header id="topbar">
+      <span id="title">&nbsp;</span>
+      <span id="page-indicator">&nbsp;</span>
+    </header>
+
+    <main id="stage">
+      <div id="book"></div>
+      <button id="prev-btn" class="nav-btn" aria-label="Previous page">&#8249;</button>
+      <button id="next-btn" class="nav-btn" aria-label="Next page">&#8250;</button>
+    </main>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Loading book&hellip;</div>
+    </div>
+
+    <footer id="hint">Click / drag a page corner &middot; Use &larr; &rarr; keys</footer>
+  </div>
+
+  <script src="vendor/page-flip.browser.js"></script>
+  <script src="pages.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
