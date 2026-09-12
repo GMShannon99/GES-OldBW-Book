@@ -7,8 +7,11 @@ window.BOOK = {
   dir: "images",
   width: 4500,
   height: 3450,
-  cover: "main cover.jpg",
+  cover: "main-cover.jpg",
   endCover: "lastCover2.jpg",
+  // Video that plays in place of the end-cover photo when clicked; path is
+  // relative to the project root (not `dir`, since it lives outside images/).
+  endCoverVideo: "video/dadGpDance.mp4",
   pages: [
     { file: "text pg 1.jpg" },
     { file: "text pg 2.jpg" },
