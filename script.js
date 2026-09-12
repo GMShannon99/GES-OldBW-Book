@@ -100,6 +100,12 @@
   // overlay to close and return to the page underneath. No prior/next
   // navigation is involved - goPrev/goNext/handleKeydown are already gated
   // on zoomOpen below, so they're simply no-ops while either overlay is up.
+  //
+  // The video element has no `autoplay`/`muted` attributes and no `src`
+  // until this runs, so it never starts on its own. play() is called here,
+  // synchronously inside the click handler that led here, which is what
+  // lets the browser play it unmuted (a direct user gesture) instead of
+  // being blocked as an autoplay attempt.
   function openVideoZoom(src) {
     videoFrameEl.src = src;
     videoOverlayEl.classList.add("visible");
@@ -108,7 +114,9 @@
     prevBtn.disabled = true;
     nextBtn.disabled = true;
     videoFrameEl.play().catch(function () {
-      /* ignore: muted autoplay is expected to succeed in all modern browsers */
+      /* ignore: some browsers may still reject programmatic play() in edge
+         cases (e.g. a slow/failed load); there's no fallback UI to show, so
+         the overlay just sits there with the video's native controls absent */
     });
   }
 
