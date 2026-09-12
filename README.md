@@ -47,8 +47,9 @@ button or pressing the right arrow key while on it fades the viewer to
 a blank screen and attempts to close the tab (browsers only allow
 scripted tabs to close themselves, so the fade is the reliable part of
 the exit on tabs not opened by script). Flipping backward from the
-back cover returns to `p31` normally, whether or not the end-cover
-video (below) is currently playing.
+back cover returns to `p31` normally. (If the end-cover video is open,
+Next/Previous/arrow keys are disabled entirely, same as while a photo
+hotspot is zoomed &mdash; see "End-cover video" below.)
 
 The same `exitBook()` function backs both exit points in the book
 (front cover Previous, back cover Next) &mdash; there's no other exit
@@ -64,14 +65,16 @@ meaningful action at every page.
 
 ## End-cover video
 
-Clicking the photo on `lastCover2.jpg` swaps it for an HTML5 `<video>`
-(`video/dadGpDance.mp4`) that autoplays muted and loops continuously;
-a small play-icon hint overlays the photo before it's clicked. This
-replaces the old click-anywhere-to-exit affordance on that page &mdash;
-exiting now happens only via the Next button, the right arrow key, or
-an attempted forward flip. (If a book has no `endCoverVideo`
-configured in `pages.js`, the end cover falls back to the original
-click-anywhere-to-exit behavior.)
+Clicking the photo on `lastCover2.jpg` opens its video
+(`video/dadGpDance.mp4`, autoplaying muted and looping continuously) in
+the exact same full-screen overlay pattern used for photo hotspots
+(below): click to open, click the overlay to close. Closing pauses the
+video and resets it to the start, and returns you to the same
+`lastCover2` page underneath &mdash; there's no Next/Previous
+navigation involved in opening or closing it, since both are disabled
+while any overlay (photo or video) is open. (If a book has no
+`endCoverVideo` configured in `pages.js`, the end cover falls back to
+the original click-anywhere-to-exit behavior instead.)
 
 ## Photo hotspots
 

@@ -14,6 +14,8 @@
   var titleEl = document.getElementById("title");
   var zoomOverlayEl = document.getElementById("zoom-overlay");
   var zoomFrameEl = document.getElementById("zoom-frame");
+  var videoOverlayEl = document.getElementById("video-overlay");
+  var videoFrameEl = document.getElementById("video-frame");
 
   document.title = config.title;
   titleEl.textContent = config.title;
@@ -93,11 +95,32 @@
     nextBtn.disabled = true;
   }
 
+  // Opens the end-cover video in the same full-screen overlay pattern used
+  // for photo hotspots (openZoom/closeZoom above): click to open, click the
+  // overlay to close and return to the page underneath. No prior/next
+  // navigation is involved - goPrev/goNext/handleKeydown are already gated
+  // on zoomOpen below, so they're simply no-ops while either overlay is up.
+  function openVideoZoom(src) {
+    videoFrameEl.src = src;
+    videoOverlayEl.classList.add("visible");
+    videoOverlayEl.setAttribute("aria-hidden", "false");
+    zoomOpen = true;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    videoFrameEl.play().catch(function () {
+      /* ignore: muted autoplay is expected to succeed in all modern browsers */
+    });
+  }
+
   function closeZoom() {
     zoomOpen = false;
     zoomBox = null;
     zoomOverlayEl.classList.remove("visible");
     zoomOverlayEl.setAttribute("aria-hidden", "true");
+    videoOverlayEl.classList.remove("visible");
+    videoOverlayEl.setAttribute("aria-hidden", "true");
+    videoFrameEl.pause();
+    videoFrameEl.currentTime = 0;
     updateIndicator();
   }
 
@@ -191,20 +214,9 @@
       endSurface.appendChild(endImg);
 
       if (def.videoSrc) {
-        var endVideo = document.createElement("video");
-        endVideo.className = "end-video end-hidden";
-        endVideo.src = def.videoSrc;
-        endVideo.loop = true;
-        endVideo.muted = true;
-        endVideo.autoplay = true;
-        endVideo.playsInline = true;
-        endSurface.appendChild(endVideo);
-
-        var playHint = document.createElement("div");
-        playHint.className = "play-hint";
-        playHint.textContent = "▶";
-        endSurface.appendChild(playHint);
-
+        // Same click-to-open pattern as the content-page hotspots: clicking
+        // the photo opens the video full-page; clicking the video (the
+        // overlay) closes it and returns to this same lastCover2 page.
         endImg.classList.add("clickable-photo");
         endImg.setAttribute("role", "button");
         endImg.setAttribute("aria-label", "Play video");
@@ -215,12 +227,7 @@
         endImg.addEventListener("touchstart", blockFlipGesture, { passive: true });
         endImg.addEventListener("click", function (e) {
           e.stopPropagation();
-          endImg.classList.add("end-hidden");
-          playHint.classList.add("end-hidden");
-          endVideo.classList.remove("end-hidden");
-          endVideo.play().catch(function () {
-            /* ignore: muted autoplay is expected to succeed in all modern browsers */
-          });
+          openVideoZoom(def.videoSrc);
         });
       } else {
         // No video configured for this book: fall back to the original
@@ -387,4 +394,5 @@
   nextBtn.addEventListener("click", goNext);
   document.addEventListener("keydown", handleKeydown);
   zoomOverlayEl.addEventListener("click", closeZoom);
+  videoOverlayEl.addEventListener("click", closeZoom);
 })();
