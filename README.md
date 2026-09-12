@@ -48,22 +48,22 @@ way to flip backward past the front cover.
 
 ## Photo hotspots
 
-Pages 3&ndash;14 and 16&ndash;24 are scrapbook-style collages of several
-individually mounted photos, so each photo on those pages is a
-clickable hotspot (cursor changes to a zoom-in icon on hover).
-Clicking a photo opens it full-page &mdash; cropped from the existing
-page scan via CSS `background-size`/`background-position` (no separate
-per-photo image files exist), scaled to fill the viewport without
-distortion, same as any other page. Clicking the zoomed photo again
-closes it and returns to the exact page it came from. While zoomed,
-arrow-key navigation and the prev/next buttons are disabled so the
-book underneath can't be flipped accidentally. Hotspots stop their
+Pages 3&ndash;14, 16&ndash;24, and 25&ndash;28 are scrapbook-style
+collages of several individually mounted photos, so each photo on
+those pages is a clickable hotspot (cursor changes to a zoom-in icon
+on hover). Clicking a photo opens it full-page &mdash; cropped from the
+existing page scan via CSS `background-size`/`background-position` (no
+separate per-photo image files exist), scaled to fill the viewport
+without distortion, same as any other page. Clicking the zoomed photo
+again closes it and returns to the exact page it came from. While
+zoomed, arrow-key navigation and the prev/next buttons are disabled so
+the book underneath can't be flipped accidentally. Hotspots stop their
 click/touch events from reaching StPageFlip, so they don't interfere
 with dragging a page corner elsewhere on the same page.
 
 Page 2 (`text pg 2.jpg`) is excluded even though it falls inside the
 requested range: it's mostly memoir text plus a single photo, not a
-multi-photo collage. Page 15 and pages 25&ndash;31 were left out of
+multi-photo collage. Page 15 and pages 29&ndash;31 were left out of
 scope entirely (not evaluated).
 
 ## Local preview
