@@ -258,7 +258,9 @@
     if (!pageFlip || exited || zoomOpen) return;
     var current = pageFlip.getCurrentPageIndex() + 1;
     indicatorEl.textContent = current + " / " + TOTAL_PAGES;
-    prevBtn.disabled = pageFlip.getCurrentPageIndex() <= 0;
+    // Both buttons stay enabled at every index: at the boundaries they now
+    // trigger exit (via goPrev/goNext) rather than being dead ends.
+    prevBtn.disabled = false;
     nextBtn.disabled = false;
   }
 
@@ -274,10 +276,10 @@
   function goPrev() {
     if (!pageFlip || exited || zoomOpen) return;
     if (pageFlip.getCurrentPageIndex() <= 0) {
-      // Already at (or somehow before) the cover: explicitly land back on
-      // the start rather than relying on an implicit no-op, so "prior" from
-      // the cover always resolves to a known, valid page.
-      pageFlip.turnToPage(0);
+      // Already at (or somehow before) the cover: hand control back to
+      // whatever launched this app, same exit mechanism used at the end of
+      // the book, rather than looping on the cover.
+      exitBook();
       return;
     }
     pageFlip.flipPrev();
