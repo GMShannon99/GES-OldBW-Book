@@ -19,32 +19,52 @@ cropping or distortion.
 - `hotspots.js` &mdash; per-page bounding boxes (as fractions of the
   page image) for the clickable photo hotspots on the collage pages.
 - `images/` &mdash; the source JPGs, copied in unmodified, under their
-  original filenames.
+  original filenames (spaces and all, except the cover &mdash; see
+  below).
+- `video/` &mdash; video assets played from within the book (currently
+  just the end-cover video).
 - `vendor/page-flip.browser.js` &mdash; the StPageFlip library, vendored
   locally.
 
 ## Page order
 
-1. Cover &mdash; `main cover.jpg`
+1. Cover &mdash; `main-cover.jpg` (renamed from the sourced `main
+   cover.jpg` to avoid a space in a filename referenced from CSS/JS)
 2. `text pg 1.jpg`, `text pg 2.jpg` &mdash; unnumbered intro pages
 3. `p3.jpg` through `p31.jpg` &mdash; numbered pages (the overlaid page
    number matches the number in the filename, e.g. `p17.jpg` shows
    "17")
 4. `lastCover2.jpg` &mdash; the back cover, with an instructional note
-   overlaid at the top
+   overlaid at the top and a click-to-play video (see below)
 
 ## End-of-book behavior
 
 There's no menu to return to, so the back cover doubles as the exit
 page instead of a generated "next" page: a semi-transparent strip
 overlaid at the top of `lastCover2.jpg` reads "Flip forward once more
-to exit, or flip back to return to the previous page." Clicking that
-page, using the Next button, or pressing the right arrow key while on
-it fades the viewer to a blank screen and attempts to close the tab
-(browsers only allow scripted tabs to close themselves, so the fade is
-the reliable part of the exit on tabs not opened by script). Flipping
-backward from the back cover returns to `p31` normally, and there's no
-way to flip backward past the front cover.
+to exit, or flip back to return to the previous page." Using the Next
+button or pressing the right arrow key while on it fades the viewer to
+a blank screen and attempts to close the tab (browsers only allow
+scripted tabs to close themselves, so the fade is the reliable part of
+the exit on tabs not opened by script). Flipping backward from the
+back cover returns to `p31` normally.
+
+Pressing the Previous button (or the left arrow key) on the front
+cover explicitly turns back to page 0 (the cover itself) rather than
+relying on an implicit no-op, so "prior" from the cover always
+resolves to a known, valid page instead of drifting into an undefined
+state.
+
+## End-cover video
+
+Clicking the photo on `lastCover2.jpg` swaps it for an HTML5 `<video>`
+(`video/dadGpDance.mp4`) that autoplays muted and loops continuously;
+a small play-icon hint overlays the photo before it's clicked. This
+replaces the old click-anywhere-to-exit affordance on that page &mdash;
+exiting now happens only via the Next button, the right arrow key, or
+an attempted forward flip. (If a book has no `endCoverVideo`
+configured in `pages.js`, the end cover falls back to the original
+click-anywhere-to-exit behavior.)
 
 ## Photo hotspots
 

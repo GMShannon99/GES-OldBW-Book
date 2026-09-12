@@ -44,7 +44,8 @@
   pageDefs.push({
     kind: "endcover",
     src: config.dir + "/" + config.endCover,
-    alt: config.title + " back cover"
+    alt: config.title + " back cover",
+    videoSrc: config.endCoverVideo
   });
 
   var TOTAL_PAGES = pageDefs.length;
@@ -188,12 +189,50 @@
       endImg.alt = def.alt;
       endImg.draggable = false;
       endSurface.appendChild(endImg);
+
+      if (def.videoSrc) {
+        var endVideo = document.createElement("video");
+        endVideo.className = "end-video end-hidden";
+        endVideo.src = def.videoSrc;
+        endVideo.loop = true;
+        endVideo.muted = true;
+        endVideo.autoplay = true;
+        endVideo.playsInline = true;
+        endSurface.appendChild(endVideo);
+
+        var playHint = document.createElement("div");
+        playHint.className = "play-hint";
+        playHint.textContent = "▶";
+        endSurface.appendChild(playHint);
+
+        endImg.classList.add("clickable-photo");
+        endImg.setAttribute("role", "button");
+        endImg.setAttribute("aria-label", "Play video");
+        var blockFlipGesture = function (e) {
+          e.stopPropagation();
+        };
+        endImg.addEventListener("mousedown", blockFlipGesture);
+        endImg.addEventListener("touchstart", blockFlipGesture, { passive: true });
+        endImg.addEventListener("click", function (e) {
+          e.stopPropagation();
+          endImg.classList.add("end-hidden");
+          playHint.classList.add("end-hidden");
+          endVideo.classList.remove("end-hidden");
+          endVideo.play().catch(function () {
+            /* ignore: muted autoplay is expected to succeed in all modern browsers */
+          });
+        });
+      } else {
+        // No video configured for this book: fall back to the original
+        // click-anywhere-to-exit affordance for the end cover.
+        div.addEventListener("click", exitBook);
+      }
+
       var note = document.createElement("div");
       note.className = "end-note";
       note.textContent = "Flip forward once more to exit, or flip back to return to the previous page.";
       endSurface.appendChild(note);
       div.appendChild(endSurface);
-      div.addEventListener("click", exitBook);
     }
 
     return div;
@@ -234,7 +273,13 @@
 
   function goPrev() {
     if (!pageFlip || exited || zoomOpen) return;
-    if (pageFlip.getCurrentPageIndex() <= 0) return;
+    if (pageFlip.getCurrentPageIndex() <= 0) {
+      // Already at (or somehow before) the cover: explicitly land back on
+      // the start rather than relying on an implicit no-op, so "prior" from
+      // the cover always resolves to a known, valid page.
+      pageFlip.turnToPage(0);
+      return;
+    }
     pageFlip.flipPrev();
   }
 
