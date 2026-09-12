@@ -8,7 +8,7 @@ window.BOOK = {
   width: 4500,
   height: 3450,
   cover: "main cover.jpg",
-  endCover: "last cover.jpg",
+  endCover: "lastCover2.jpg",
   pages: [
     { file: "text pg 1.jpg" },
     { file: "text pg 2.jpg" },

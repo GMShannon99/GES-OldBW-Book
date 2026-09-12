@@ -28,14 +28,14 @@ cropping or distortion.
 3. `p3.jpg` through `p31.jpg` &mdash; numbered pages (the overlaid page
    number matches the number in the filename, e.g. `p17.jpg` shows
    "17")
-4. `last cover.jpg` &mdash; the back cover, with an instructional note
+4. `lastCover2.jpg` &mdash; the back cover, with an instructional note
    overlaid at the top
 
 ## End-of-book behavior
 
 There's no menu to return to, so the back cover doubles as the exit
 page instead of a generated "next" page: a semi-transparent strip
-overlaid at the top of `last cover.jpg` reads "Flip forward once more
+overlaid at the top of `lastCover2.jpg` reads "Flip forward once more
 to exit, or flip back to return to the previous page." Clicking that
 page, using the Next button, or pressing the right arrow key while on
 it fades the viewer to a blank screen and attempts to close the tab
