@@ -14,7 +14,15 @@ window.BOOK = {
   endCoverVideo: "video/dadGpDance.mp4",
   pages: [
     { file: "text pg 1.jpg" },
-    { file: "text pg 2.jpg" },
+    {
+      file: "text pg 2.jpg",
+      // Single click-to-play video hotspot over the photo (not a
+      // HOTSPOTS zoom entry, since this opens a video, not a photo
+      // zoom); box is a fraction of the page image, same convention
+      // as hotspots.js.
+      video: "video/dadHorseBackflip.mp4",
+      videoBox: { x: 0.5, y: 0.005, w: 0.4989, h: 0.99 }
+    },
     { file: "p3.jpg", number: 3 },
     { file: "p4.jpg", number: 4 },
     { file: "p5.jpg", number: 5 },

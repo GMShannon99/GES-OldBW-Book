@@ -40,7 +40,9 @@
       src: config.dir + "/" + p.file,
       alt: config.title + " page " + (p.number || ""),
       number: p.number,
-      file: p.file
+      file: p.file,
+      videoSrc: p.video,
+      videoBox: p.videoBox
     });
   });
   pageDefs.push({
@@ -95,18 +97,21 @@
     nextBtn.disabled = true;
   }
 
-  // Opens the end-cover video in the same full-screen overlay pattern used
-  // for photo hotspots (openZoom/closeZoom above): click to open, click the
+  // Opens a local video in the same full-screen overlay pattern used for
+  // photo hotspots (openZoom/closeZoom above): click to open, click the
   // overlay to close and return to the page underneath. No prior/next
   // navigation is involved - goPrev/goNext/handleKeydown are already gated
   // on zoomOpen below, so they're simply no-ops while either overlay is up.
   //
-  // The video element has no `autoplay`/`muted` attributes and no `src`
-  // until this runs, so it never starts on its own. play() is called here,
-  // synchronously inside the click handler that led here, which is what
-  // lets the browser play it unmuted (a direct user gesture) instead of
-  // being blocked as an autoplay attempt.
-  function openVideoZoom(src) {
+  // The video element has no `autoplay` attribute and no `src` until this
+  // runs, so it never starts on its own; `muted` is set fresh on each call
+  // since different videos in the book want different defaults (e.g. the
+  // end-cover video plays with sound, page hotspot videos play muted).
+  // play() is called here, synchronously inside the click handler that led
+  // here, which is what lets the browser play it (a direct user gesture)
+  // instead of being blocked as an autoplay attempt.
+  function openVideoZoom(src, muted) {
+    videoFrameEl.muted = !!muted;
     videoFrameEl.src = src;
     videoOverlayEl.classList.add("visible");
     videoOverlayEl.setAttribute("aria-hidden", "false");
@@ -209,6 +214,29 @@
         });
         surface.appendChild(hotspot);
       });
+      if (def.videoSrc && def.videoBox) {
+        // Same click-to-open pattern as the end-cover video (openVideoZoom/
+        // closeZoom): a single hotspot-shaped click target over the photo,
+        // muted and looping (loop is set on #video-frame in book.html).
+        var videoHotspot = document.createElement("div");
+        videoHotspot.className = "hotspot video-hotspot";
+        videoHotspot.style.left = def.videoBox.x * 100 + "%";
+        videoHotspot.style.top = def.videoBox.y * 100 + "%";
+        videoHotspot.style.width = def.videoBox.w * 100 + "%";
+        videoHotspot.style.height = def.videoBox.h * 100 + "%";
+        videoHotspot.setAttribute("role", "button");
+        videoHotspot.setAttribute("aria-label", "Play video");
+        var blockVideoFlipGesture = function (e) {
+          e.stopPropagation();
+        };
+        videoHotspot.addEventListener("mousedown", blockVideoFlipGesture);
+        videoHotspot.addEventListener("touchstart", blockVideoFlipGesture, { passive: true });
+        videoHotspot.addEventListener("click", function (e) {
+          e.stopPropagation();
+          openVideoZoom(def.videoSrc, true);
+        });
+        surface.appendChild(videoHotspot);
+      }
       div.appendChild(surface);
     } else if (def.kind === "endcover") {
       div.className = "page";
@@ -235,7 +263,7 @@
         endImg.addEventListener("touchstart", blockFlipGesture, { passive: true });
         endImg.addEventListener("click", function (e) {
           e.stopPropagation();
-          openVideoZoom(def.videoSrc);
+          openVideoZoom(def.videoSrc, false);
         });
       } else {
         // No video configured for this book: fall back to the original

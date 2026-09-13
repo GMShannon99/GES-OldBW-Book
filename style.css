@@ -114,6 +114,10 @@ html, body {
   cursor: zoom-in;
 }
 
+.hotspot.video-hotspot {
+  cursor: pointer;
+}
+
 .zoom-overlay {
   position: fixed;
   inset: 0;

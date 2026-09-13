@@ -21,8 +21,8 @@ cropping or distortion.
 - `images/` &mdash; the source JPGs, copied in unmodified, under their
   original filenames (spaces and all, except the cover &mdash; see
   below).
-- `video/` &mdash; video assets played from within the book (currently
-  just the end-cover video).
+- `video/` &mdash; video assets played from within the book (the
+  end-cover video and the page 2 photo hotspot video).
 - `vendor/page-flip.browser.js` &mdash; the StPageFlip library, vendored
   locally.
 
@@ -31,6 +31,8 @@ cropping or distortion.
 1. Cover &mdash; `main-cover.jpg` (renamed from the sourced `main
    cover.jpg` to avoid a space in a filename referenced from CSS/JS)
 2. `text pg 1.jpg`, `text pg 2.jpg` &mdash; unnumbered intro pages
+   (`text pg 2.jpg`'s photo is a click-to-play video hotspot &mdash; see
+   "Page 2 video" below)
 3. `p3.jpg` through `p31.jpg` &mdash; numbered pages (the overlaid page
    number matches the number in the filename, e.g. `p17.jpg` shows
    "17")
@@ -63,7 +65,7 @@ it now has a meaningful action at every page.
 ## End-cover video
 
 Clicking the photo on `lastCover2.jpg` opens its video
-(`video/dadGpDance.mp4`, autoplaying muted and looping continuously) in
+(`video/dadGpDance.mp4`, playing with sound and looping continuously) in
 the exact same full-screen overlay pattern used for photo hotspots
 (below): click to open, click the overlay to close. Closing pauses the
 video and resets it to the start, and returns you to the same
@@ -72,6 +74,21 @@ navigation involved in opening or closing it, since both are disabled
 while any overlay (photo or video) is open. (If a book has no
 `endCoverVideo` configured in `pages.js`, the end cover falls back to
 the original click-anywhere-to-exit behavior instead.)
+
+## Page 2 video
+
+`text pg 2.jpg`'s photo (of a boy on a horse) is a single click-to-play
+video hotspot, positioned via a `videoBox` fraction box on that page's
+entry in `pages.js` (same box convention as `hotspots.js`, since this
+page was never a candidate for the zoom-style `HOTSPOTS` map &mdash; see
+"Photo hotspots" below). Clicking it opens `video/dadHorseBackflip.mp4`
+in the same full-screen overlay used everywhere else in the book
+(`openVideoZoom`/`closeZoom`), but muted and looping rather than
+playing with sound like the end-cover video &mdash; a deliberate choice
+for this clip, not an autoplay-permission workaround, since both videos
+only ever start from a real click. Clicking the video again closes it
+and returns to `text pg 2.jpg` underneath, same toggle behavior as the
+end-cover video.
 
 ## Photo hotspots
 
@@ -90,7 +107,8 @@ with dragging a page corner elsewhere on the same page.
 
 Page 2 (`text pg 2.jpg`) is excluded even though it falls inside the
 requested range: it's mostly memoir text plus a single photo, not a
-multi-photo collage. Page 15 and pages 29&ndash;31 were left out of
+multi-photo collage (its photo is a video hotspot instead &mdash; see
+"Page 2 video" above). Page 15 and pages 29&ndash;31 were left out of
 scope entirely (not evaluated).
 
 ## Local preview
