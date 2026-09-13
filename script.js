@@ -269,6 +269,21 @@
     }, 850);
   }
 
+  // Distinct from exitBook(): only the front cover's Previous control lands
+  // here, since (unlike the back cover) there's a real place to send the
+  // user back to - the MySelectMenu launcher this book was opened from.
+  function returnToMenu() {
+    if (exited) return;
+    exited = true;
+    document.removeEventListener("keydown", handleKeydown);
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    appEl.classList.add("exiting");
+    setTimeout(function () {
+      window.location.href = "https://gmshannon99.github.io/MySelectMenu/";
+    }, 850);
+  }
+
   function updateIndicator() {
     if (!pageFlip || exited || zoomOpen) return;
     var current = pageFlip.getCurrentPageIndex() + 1;
@@ -292,9 +307,9 @@
     if (!pageFlip || exited || zoomOpen) return;
     if (pageFlip.getCurrentPageIndex() <= 0) {
       // Already at (or somehow before) the cover: hand control back to
-      // whatever launched this app, same exit mechanism used at the end of
-      // the book, rather than looping on the cover.
-      exitBook();
+      // MySelectMenu, the launcher this book was opened from, rather than
+      // looping on the cover.
+      returnToMenu();
       return;
     }
     pageFlip.flipPrev();

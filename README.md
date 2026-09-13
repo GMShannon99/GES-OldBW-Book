@@ -51,17 +51,14 @@ back cover returns to `p31` normally. (If the end-cover video is open,
 Next/Previous/arrow keys are disabled entirely, same as while a photo
 hotspot is zoomed &mdash; see "End-cover video" below.)
 
-The same `exitBook()` function backs both exit points in the book
-(front cover Previous, back cover Next) &mdash; there's no other exit
-mechanism in this app (no Electron/IPC, no iframe/postMessage parent
-communication) since it's a plain static page meant to be opened
-directly in a browser tab.
-
 Pressing the Previous button (or the left arrow key) on the front
-cover also exits, using the same mechanism as the back cover, since
-there's nowhere earlier to go. The Previous button is never disabled
-(unlike Next, which was already always enabled) since it now has a
-meaningful action at every page.
+cover navigates back to
+[MySelectMenu](https://gmshannon99.github.io/MySelectMenu/), the
+launcher this book is normally opened from, via a separate
+`returnToMenu()` function &mdash; distinct from `exitBook()`, which
+still backs the back-cover exit path above. The Previous button is
+never disabled (unlike Next, which was already always enabled) since
+it now has a meaningful action at every page.
 
 ## End-cover video
 
