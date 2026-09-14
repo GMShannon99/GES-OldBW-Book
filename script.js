@@ -16,6 +16,8 @@
   var zoomFrameEl = document.getElementById("zoom-frame");
   var videoOverlayEl = document.getElementById("video-overlay");
   var videoFrameEl = document.getElementById("video-frame");
+  var printBtn = document.getElementById("print-btn");
+  var printFrameEl = document.getElementById("print-frame");
 
   document.title = config.title;
   titleEl.textContent = config.title;
@@ -86,6 +88,28 @@
       (box.h >= 1 ? 0 : (100 * box.y) / (1 - box.h)) + "%";
   }
 
+  // Renders the same box crop used on screen (via background-size/position)
+  // into an offscreen canvas instead, so it can be printed as a real <img>.
+  // Browsers print background images only if the user opts in via the print
+  // dialog's "Background graphics" toggle (off by default in Chrome,
+  // Firefox, and Safari), so printing the on-screen zoom-frame directly
+  // would silently come out blank for most people.
+  function preparePrintImage(src, box, onReady) {
+    var img = new Image();
+    img.onload = function () {
+      var sx = Math.round(img.naturalWidth * box.x);
+      var sy = Math.round(img.naturalHeight * box.y);
+      var sw = Math.round(img.naturalWidth * box.w);
+      var sh = Math.round(img.naturalHeight * box.h);
+      var canvas = document.createElement("canvas");
+      canvas.width = sw;
+      canvas.height = sh;
+      canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      onReady(canvas.toDataURL("image/jpeg", 0.92));
+    };
+    img.src = src;
+  }
+
   function openZoom(src, box) {
     zoomBox = box;
     zoomFrameEl.style.backgroundImage = "url(" + src + ")";
@@ -95,6 +119,11 @@
     zoomOpen = true;
     prevBtn.disabled = true;
     nextBtn.disabled = true;
+    printBtn.disabled = true;
+    preparePrintImage(src, box, function (dataUrl) {
+      printFrameEl.src = dataUrl;
+      printBtn.disabled = false;
+    });
   }
 
   // Opens a local video in the same full-screen overlay pattern used for
@@ -134,6 +163,8 @@
     videoOverlayEl.setAttribute("aria-hidden", "true");
     videoFrameEl.pause();
     videoFrameEl.currentTime = 0;
+    printBtn.disabled = true;
+    printFrameEl.removeAttribute("src");
     updateIndicator();
   }
 
@@ -442,4 +473,11 @@
   document.addEventListener("keydown", handleKeydown);
   zoomOverlayEl.addEventListener("click", closeZoom);
   videoOverlayEl.addEventListener("click", closeZoom);
+  printBtn.addEventListener("click", function (e) {
+    // Stop the click from bubbling to zoomOverlayEl's own listener, which
+    // would otherwise treat this click as "close the zoom" (same pattern
+    // used for the photo hotspots themselves).
+    e.stopPropagation();
+    window.print();
+  });
 })();
