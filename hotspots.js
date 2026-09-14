@@ -1,7 +1,8 @@
-// Clickable photo hotspots for select collage pages (pages 3-14, 16-24).
-// Each box is a fraction (0-1) of the full page image's width/height, in
-// reading order. Page 2 ("text pg 2.jpg") and pages 15, 25-31 are excluded
-// because they are not clean multi-photo collages (see README).
+// Clickable photo hotspots for select collage pages (pages 3-14, 16-24,
+// 25-28). Each box is a fraction (0-1) of the full page image's
+// width/height, in reading order. Page 2 ("text pg 2.jpg") and pages 15,
+// 29-31 are excluded because they are not clean multi-photo collages
+// (see README).
 window.HOTSPOTS = {
   "p3.jpg": [
     { x: 0.6796, y: 0.0168, w: 0.1467, h: 0.3478 },
