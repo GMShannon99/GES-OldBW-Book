@@ -18,6 +18,57 @@
   var videoFrameEl = document.getElementById("video-frame");
   var printBtn = document.getElementById("print-btn");
   var printFrameEl = document.getElementById("print-frame");
+  var printStatusEl = document.getElementById("print-status");
+  var currentPrintBlob = null;
+  var printStatusTimer = null;
+
+  // Visible, on-screen confirmation of each step of a print/share attempt -
+  // added because window.print()'s mobile behavior is inconsistent enough
+  // (silent no-ops on some Android builds and in standalone/home-screen
+  // mode) that console logs alone aren't enough to diagnose from a phone
+  // that isn't attached to a debugger. Safe to remove once mobile behavior
+  // is confirmed working end to end.
+  function showPrintStatus(msg) {
+    console.log("[print]", msg);
+    printStatusEl.textContent = msg;
+    printStatusEl.classList.add("visible");
+    clearTimeout(printStatusTimer);
+    printStatusTimer = setTimeout(function () {
+      printStatusEl.classList.remove("visible");
+    }, 4000);
+  }
+
+  // Feature-detects whether navigator.share() can share an image file (Web
+  // Share API level 2).
+  function canShareFiles() {
+    if (!window.navigator || !navigator.share || !navigator.canShare) return false;
+    try {
+      var probe = new File([new Blob(["x"], { type: "image/jpeg" })], "probe.jpg", {
+        type: "image/jpeg"
+      });
+      return navigator.canShare({ files: [probe] });
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Desktop Chrome/Edge on Windows also implements navigator.share() (it
+  // opens the Windows Share flyout), but that flyout has no "Print" entry
+  // and would silently replace the desktop print flow that's already known
+  // to work with a worse one. So the share-first path is gated to actual
+  // mobile devices, not just feature support.
+  function isMobileDevice() {
+    if (navigator.userAgentData && typeof navigator.userAgentData.mobile === "boolean") {
+      return navigator.userAgentData.mobile;
+    }
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+    // iPadOS Safari reports a desktop Mac user agent by default; tell it
+    // apart from a real Mac by touch support (Macs aren't multi-touch).
+    if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) return true;
+    return false;
+  }
+
+  var SHARE_CAPABLE = isMobileDevice() && canShareFiles();
 
   document.title = config.title;
   titleEl.textContent = config.title;
@@ -105,7 +156,13 @@
       canvas.width = sw;
       canvas.height = sh;
       canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-      onReady(canvas.toDataURL("image/jpeg", 0.92));
+      canvas.toBlob(
+        function (blob) {
+          onReady(canvas.toDataURL("image/jpeg", 0.92), blob);
+        },
+        "image/jpeg",
+        0.92
+      );
     };
     img.src = src;
   }
@@ -120,8 +177,9 @@
     prevBtn.disabled = true;
     nextBtn.disabled = true;
     printBtn.disabled = true;
-    preparePrintImage(src, box, function (dataUrl) {
+    preparePrintImage(src, box, function (dataUrl, blob) {
       printFrameEl.src = dataUrl;
+      currentPrintBlob = blob;
       printBtn.disabled = false;
     });
   }
@@ -165,6 +223,8 @@
     videoFrameEl.currentTime = 0;
     printBtn.disabled = true;
     printFrameEl.removeAttribute("src");
+    currentPrintBlob = null;
+    printStatusEl.classList.remove("visible");
     updateIndicator();
   }
 
@@ -473,11 +533,65 @@
   document.addEventListener("keydown", handleKeydown);
   zoomOverlayEl.addEventListener("click", closeZoom);
   videoOverlayEl.addEventListener("click", closeZoom);
+  // Confirms window.print() actually opened/closed a dialog, as opposed to
+  // the call silently no-op'ing (which happens in some Android WebViews and
+  // in some "added to home screen" standalone contexts with no browser
+  // chrome to host the print UI).
+  window.addEventListener("beforeprint", function () {
+    showPrintStatus("Print dialog opened.");
+  });
+  window.addEventListener("afterprint", function () {
+    showPrintStatus("Print dialog closed.");
+  });
+
   printBtn.addEventListener("click", function (e) {
     // Stop the click from bubbling to zoomOverlayEl's own listener, which
     // would otherwise treat this click as "close the zoom" (same pattern
     // used for the photo hotspots themselves).
     e.stopPropagation();
-    window.print();
+    showPrintStatus("Tap registered…");
+
+    // Prefer the share sheet where it can actually share a file: far more
+    // reliable on mobile (Save Image / AirPrint / send-to-printer-app all
+    // live there) than window.print(), whose in-page print support is
+    // inconsistent across Android builds and doesn't work at all inside
+    // browser chrome-less contexts. Both calls happen synchronously inside
+    // this click handler (not after an await or a timeout) because both
+    // require an active user gesture to be allowed to run at all.
+    if (SHARE_CAPABLE && currentPrintBlob) {
+      try {
+        var file = new File([currentPrintBlob], "photo.jpg", { type: "image/jpeg" });
+        if (navigator.canShare({ files: [file] })) {
+          showPrintStatus("Opening share sheet…");
+          navigator
+            .share({ files: [file], title: config.title })
+            .then(function () {
+              showPrintStatus("Shared.");
+            })
+            .catch(function (err) {
+              if (err && err.name === "AbortError") {
+                // The user dismissed the share sheet themselves - not a failure.
+                showPrintStatus("Share cancelled.");
+              } else {
+                console.error("[print] share failed, falling back to print", err);
+                showPrintStatus("Share failed, trying print…");
+                window.print();
+              }
+            });
+          return;
+        }
+      } catch (err) {
+        // Fall through to window.print() below rather than aborting silently.
+        console.error("[print] share setup threw, falling back to print", err);
+      }
+    }
+
+    showPrintStatus("Opening print dialog…");
+    try {
+      window.print();
+    } catch (err) {
+      console.error("[print] window.print() threw", err);
+      showPrintStatus("Print failed: " + (err && err.message ? err.message : "unknown error"));
+    }
   });
 })();
