@@ -289,17 +289,13 @@
     nextBtn.disabled = true;
     appEl.classList.add("exiting");
     setTimeout(function () {
-      try {
-        window.close();
-      } catch (e) {
-        /* ignore: not all browsers allow scripted tabs to close themselves */
-      }
+      window.location.href = "https://gmshannon99.github.io/MySelectMenu/";
     }, 850);
   }
 
-  // Distinct from exitBook(): only the front cover's Previous control lands
-  // here, since (unlike the back cover) there's a real place to send the
-  // user back to - the MySelectMenu launcher this book was opened from.
+  // Kept distinct from exitBook() only for the "exited" no-op guard call
+  // sites; both now send the user back to the same place - the
+  // MySelectMenu launcher this book was opened from.
   function returnToMenu() {
     if (exited) return;
     exited = true;
